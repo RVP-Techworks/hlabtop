@@ -7,7 +7,7 @@ tools (`nvidia-smi`, `rocm-smi`, `amd-smi`, `nvtop`, …) and live GPU, CPU and 
 graphs, side by side, over SSH. Nothing to install on the machines you watch —
 if you can SSH in, hlabtop can show it.
 
-![hlabtop showing CPU, per-core, memory, load, RAM, swap and VRAM graphs for two hosts]
+![hlabtop showing CPU, per-core, memory, load, RAM, swap and VRAM graphs for two hosts](docs/dashboard.png)
 
 ## Download
 
