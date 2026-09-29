@@ -16,7 +16,7 @@ Grab the file for your system from the **[latest release](https://github.com/RVP
 | System | File | How to open it |
 |---|---|---|
 | Windows 10/11 | `hlabtop-…-windows-x64.exe` | Double-click. SmartScreen may warn about an unknown publisher the first time: **More info → Run anyway**. |
-| macOS (Apple Silicon) | `hlabtop-…-macos-arm64.zip` | Unzip, then **right-click `hlabtop.app` → Open** the first time (it isn't signed with an Apple Developer ID). |
+| macOS (Apple Silicon) | `hlabtop-…-macos-arm64.zip` | Unzip, then **right-click `hlabtop.app` → Open** the first time. |
 | Linux — Flatpak | `hlabtop-…-x86_64.flatpak` | `flatpak install --user hlabtop-…-x86_64.flatpak`, then open **hlabtop** from your app menu. Best on Bazzite, Fedora Silverblue and other immutable distros. |
 | Linux — AppImage | `hlabtop-…-x86_64.AppImage` | `chmod +x` it, then run it. |
 | Linux — single file | `hlabtop-…-linux-x86_64` | `chmod +x` it, then run it. Also runs in a terminal: `hlabtop user@host`. |
