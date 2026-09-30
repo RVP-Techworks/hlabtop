@@ -1,6 +1,6 @@
 # hlabtop
 
-*top for your homelab.*
+*CLI Monitoring for your homelab.*
 
 hlabtop watches the machines in your homelab from one window: `htop`, your GPU
 tools (`nvidia-smi`, `rocm-smi`, `amd-smi`, `nvtop`, …) and live GPU, CPU and RAM
