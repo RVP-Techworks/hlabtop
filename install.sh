@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
-# Install (or update) hlabtop from the latest release on GitHub.
+# Install (or update) hlabtop from the latest release on GitHub, on Linux or macOS.
 #
 #   curl -fsSL https://raw.githubusercontent.com/RVP-Techworks/hlabtop/main/install.sh | bash
 #
-# Uses the Flatpak when flatpak is installed, otherwise the single-file binary in
-# ~/.local/bin plus an app-menu entry. Options (after `bash -s --` when piped):
-#   --flatpak     install the Flatpak
-#   --binary      install the single-file binary
-#   --uninstall   remove whichever of them is installed
+# Linux (x86_64): the Flatpak when flatpak is installed, otherwise the single-file
+# binary in ~/.local/bin plus an app-menu entry. macOS (Apple Silicon): hlabtop.app
+# in ~/Applications. Options (after `bash -s --` when piped):
+#   --flatpak     Linux: install the Flatpak
+#   --binary      Linux: install the single-file binary
+#   --uninstall   remove whatever this script installed
 # Nothing is installed system-wide and no sudo is needed.
+# (Windows: see install.ps1.)
 set -euo pipefail
 
 REPO="RVP-Techworks/hlabtop"
@@ -17,6 +19,7 @@ API="${HLABTOP_API:-https://api.github.com/repos/$REPO/releases/latest}"
 RAW="${HLABTOP_RAW:-https://raw.githubusercontent.com/$REPO/main}"
 BIN_DIR="$HOME/.local/bin"
 DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}"
+APPS_DIR="${HLABTOP_APPS_DIR:-$HOME/Applications}"  # macOS
 
 say() { printf '\033[1m%s\033[0m\n' "$*"; }
 die() { printf 'hlabtop install: %s\n' "$*" >&2; exit 1; }
@@ -35,6 +38,10 @@ uninstall() {
     local removed=""
     if command -v flatpak >/dev/null && flatpak info --user "$APP_ID" >/dev/null 2>&1; then
         flatpak uninstall --user -y --noninteractive "$APP_ID" && removed=1
+    fi
+    if [ -d "$APPS_DIR/hlabtop.app" ] && [ "$(uname -s)" = Darwin ]; then
+        rm -rf "$APPS_DIR/hlabtop.app"
+        removed=1
     fi
     if [ -e "$BIN_DIR/hlabtop" ]; then
         rm -f "$BIN_DIR/hlabtop" "$DATA_DIR/applications/hlabtop.desktop" \
@@ -60,12 +67,20 @@ for arg in "$@"; do
 done
 
 case "$(uname -s)-$(uname -m)" in
-    Linux-x86_64) ;;
-    Linux-*) die "the downloads are for x86_64 PCs; $(uname -m) (e.g. a Raspberry Pi) isn't supported yet" ;;
-    *) die "this installs the Linux version; for Windows and macOS, download from https://github.com/$REPO/releases/latest" ;;
+    Linux-x86_64) platform=linux ;;
+    Linux-*) die "the Linux downloads are for x86_64 PCs; $(uname -m) (e.g. a Raspberry Pi) isn't supported yet" ;;
+    Darwin-*)
+        # Apple Silicon, even from a terminal running under Rosetta (which reports x86_64).
+        [ "$(sysctl -n hw.optional.arm64 2>/dev/null || echo 0)" = 1 ] \
+            || die "the macOS download is for Apple Silicon Macs; Intel Macs aren't supported yet"
+        platform=mac ;;
+    *) die "this script is for Linux and macOS; on Windows, see https://github.com/$REPO#download" ;;
 esac
 
-if [ -z "$mode" ]; then
+if [ "$platform" = mac ]; then
+    [ -z "$mode" ] || die "--flatpak and --binary are for Linux"
+    mode=mac
+elif [ -z "$mode" ]; then
     if command -v flatpak >/dev/null; then mode=flatpak; else mode=binary; fi
 fi
 
@@ -77,7 +92,19 @@ asset() { printf '%s' "$release" | grep -o "\"browser_download_url\": *\"[^\"]*$
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
-if [ "$mode" = flatpak ]; then
+if [ "$mode" = mac ]; then
+    url="$(asset 'macos-arm64\.zip')"
+    [ -n "$url" ] || die "no macOS download in release ${version:-?}"
+    say "Downloading hlabtop ${version} (macOS)..."
+    fetch "$url" "$tmp/hlabtop.zip"
+    mkdir -p "$APPS_DIR"
+    rm -rf "$APPS_DIR/hlabtop.app"
+    ditto -x -k "$tmp/hlabtop.zip" "$APPS_DIR"
+    # Not signed with an Apple Developer ID: clear the downloaded-file flag so macOS
+    # opens it without the "unidentified developer" block (you chose to install it).
+    xattr -dr com.apple.quarantine "$APPS_DIR/hlabtop.app" 2>/dev/null || true
+    say "Installed hlabtop ${version} to ~/Applications/hlabtop.app. Open it from Launchpad, Spotlight or Finder."
+elif [ "$mode" = flatpak ]; then
     command -v flatpak >/dev/null || die "flatpak isn't installed; run with --binary instead"
     url="$(asset 'x86_64\.flatpak')"
     [ -n "$url" ] || die "no Flatpak in release ${version:-?}"
