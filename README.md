@@ -23,6 +23,17 @@ Grab the file for your system from the **[latest release](https://github.com/RVP
 
 Everything it needs is bundled; there's nothing else to install.
 
+### Linux in one command
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/RVP-Techworks/hlabtop/main/install.sh | bash
+```
+
+Installs the latest release for your user (no sudo): the Flatpak if you have
+Flatpak, otherwise the single file in `~/.local/bin` with an app-menu entry. Run
+it again to update. Add `-s -- --uninstall` after `bash` to remove it, or
+`-s -- --binary` / `-s -- --flatpak` to choose.
+
 ## What it does
 
 - **Panes you arrange** — htop, btop, top, GPU tools (auto-detected), sensors,
